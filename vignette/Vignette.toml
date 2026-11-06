@@ -1,0 +1,15 @@
+# The vignette of HansenLRTest.jl, written by Pollis (Compose > New Methods > Package and Publish) and shown in
+# Help > Documentation > Package Vignettes once the package is installed.
+
+article = "https://doi.org/10.1002/jae.3950070506"
+author = "Antonio Saragga Seabra"
+citation = "Hansen, B. E. (1992). The likelihood ratio test under nonstandard conditions: Testing the Markov switching model of GNP. Journal of Applied Econometrics 7(S1), S61-S82. Erratum: Journal of Applied Econometrics 11(2), 195-198 (1996)."
+description = "Hansen's standardized likelihood ratio test of a one-state autoregression against a two-state switching model, with the 1996 erratum's Bartlett-kernel p-values: maximum likelihood estimates of the AR(4), Hamilton's Markov switching model, the switching intercept model and the switching parameters model of US real GNP, the Wald tests between them, and the standardized LR statistics on grids of the parameters not identified under the null."
+license = "MIT"
+method = "The standardized likelihood ratio test for Markov switching models of GNP"
+package = "HansenLRTest"
+repository = "https://github.com/Trumpingtons/HansenLRTest.jl"
+source = "HansenLRTest.tex"
+title = "The standardized likelihood ratio test for Markov switching models of GNP"
+topic = "Regime Switching"
+version = "0.1.0"

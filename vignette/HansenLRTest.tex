@@ -1,0 +1,95 @@
+% Vignette of the Pollis method HansenLRTest
+% Compile with: julia -e 'using PollisTeX; display(compile("HansenLRTest.tex"))'
+\input{vignette_style}
+\renewcommand{\vignetteauthor}{Antonio Saragga Seabra}
+\renewcommand{\vignettedate}{6 November 2026}
+\renewcommand{\vignettelicense}{MIT}
+
+\begin{document}
+
+\nmhead{Hansen's LR test}
+  {The standardized likelihood ratio test\\ for Markov switching models of GNP}
+  {Hansen's test of one state against two, reproduced on Hamilton's GNP data.}
+
+\factsheet
+  {\nmcite{Han1992a}{Hansen (1992)}, \emph{Journal of Applied Econometrics}: Tables I--III, V, VI, VIII, IX (pp.\,S71--S78); the \nmcite{Han1996a}{Hansen (1996a)} erratum's Tables III, VI, X. Hamilton's US GNP, 1951--1984, from the R package MSTest (the same as Hansen's file).}
+  {MarSwitching.jl estimates switching models but has no test of the number of states; this package writes its own filters, to maximize the likelihood with mud, p and q fixed.}
+  {\fn{HansenLRTest.jl}}
+  {205 printed values: 113 of 117 estimates and statistics to every digit, 4 off by one in the last. The 88 simulated p-values are within 0.04 of Hansen's 1992 run, 0.02 of erratum Table X, 0.06 of its Tables III and VI.}
+
+\nmsection{The problem}
+Does US GNP growth switch between two states, as \nmcite{Ham1989a}{Hamilton (1989)} proposed, or is a one-state AR(4) enough? Under the null, mud, the difference between the states, is zero; the transition probabilities p and q are not identified, and the scores of mud, p and q are identically zero. The likelihood ratio and the t-statistic of mud have no chi-squared or normal limit.
+
+\nmsection{The method}
+\nmsub{The standardized LR statistic}
+Let $\alpha=(\beta,\gamma)$ hold the switching parameters $\beta$ (mud, and for Models A and B also phi2d) and $\gamma=(p,q)$. For each $\alpha$ on a grid, the other parameters $\theta$ are concentrated out by maximum likelihood. With $q_t(\alpha)=l_t(\alpha,\hat\theta(\alpha))-l_t(\hat\theta_0)$, the difference from the AR(4) in the log likelihood of observation $t$,
+\[
+\mathrm{LR}^*_n=\sup_\alpha \frac{\sum_t q_t(\alpha)}{V_n(\alpha)^{1/2}},\qquad V_n(\alpha)=\sum_t\bigl(q_t(\alpha)-\bar q(\alpha)\bigr)^2 .
+\]
+The p-values follow the erratum's method (3'): 1,000 draws of $\sup_\alpha\sum_{k=0}^{M}\sum_t \tilde q_t(\alpha)u_{t+k}/\sqrt{1+M}$, $u_t$ standard normal (the same for every grid point), $\tilde q_t$ the demeaned $q_t$ over $V_n^{1/2}$, Bartlett bandwidth $M=0,\dots,4$. mud runs over 0.1, \dots, 2; p and q over Grid~1 (0.2 to 0.8 by 0.2) to Grid~5 (0.1 to 0.9 by 0.05).
+
+For each (p, q) the search starts from the null estimates and carries each result to the next mud, as in Hansen's programs. Estimates are exact maximum likelihood, with White's standard errors \nmcite{Whi1980a}{(White 1980)}; the sample is 1952:2--1984:4, $n=131$.
+
+\nmsub{The functions}
+\fn{ar\_estimates}, \fn{hamilton\_estimates}, \fn{intercept\_estimates} and \fn{switching\_estimates} return Tables I, II, V and VIII (estimates, standard errors, log likelihood); \fn{wald\_tests}, Table IX; \fn{standardized\_lr(gnp, model; grids)}, LR*, and \fn{lr\_pvalues}, its p-values, one row per grid, one column per $M$, for \fn{model} \fn{:hamilton}, \fn{:intercept}, \fn{:modelA} or \fn{:modelB}. \fn{growth} returns 100 times the first difference of log GNP.
+
+\nmsection{What the tests show}
+\nmsub{p-values of Tables III and VI: Hansen's two runs beside ours}
+\begin{valuetable}{@{}Xc@{\hspace{10pt}}ccccc@{\hspace{10pt}}ccccc@{}}
+& \textbf{1992} & \multicolumn{5}{c}{\textbf{Erratum, $M=0,\dots,4$}} & \multicolumn{5}{c}{\textbf{Julia, $M=0,\dots,4$}}\\\midrule
+III, Grid 1 & .77 & .77 & .75 & .75 & .76 & .73 & .76 & .74 & .74 & .72 & .70\\
+III, Grid 2 & .68 & .73 & .68 & .67 & .66 & .62 & .72 & .65 & .65 & .64 & .63\\
+III, Grid 3 & .72 & .74 & .70 & .69 & .69 & .65 & .74 & .68 & .68 & .66 & .66\\
+VI, Grid 1 & .25 & .29 & .26 & .30 & .27 & .28 & .25 & .26 & .25 & .24 & .25\\
+VI, Grid 2 & .46 & .49 & .51 & .50 & .46 & .48 & .48 & .47 & .45 & .42 & .44\\
+VI, Grid 3 & .40 & .44 & .42 & .43 & .41 & .43 & .41 & .41 & .39 & .37 & .37\\
+VI, Grid 4 & .36 & .41 & .38 & .38 & .37 & .38 & .38 & .37 & .36 & .33 & .34\\
+VI, Grid 5 & .32 & .39 & .38 & .36 & .34 & .34 & .36 & .35 & .34 & .32 & .32\\
+\end{valuetable}
+
+\nmsub{All targets}
+\begin{valuetable}{@{}lXrrc@{}}
+\textbf{Source} & \textbf{Value} & \textbf{Published} & \textbf{Julia} & \\\midrule
+Table I, p.\,S71 & AR(4): 12 estimates and SEs, log likelihood; all to every digit & $-183.669$ & $-183.669$ & \ok\\
+Table II, p.\,S72 & Hamilton's model: 18 of 19 to every digit; log likelihood & $-181.263$ & $-181.263$ & \ok\\
+Table II, p.\,S72 & standard error of mu & 0.465 & 0.466 & \no\\
+Table V, p.\,S75 & switching intercept: 17 of 19 to every digit; log likelihood & $-180.184$ & $-180.184$ & \ok\\
+Table V, p.\,S75 & p; q & 0.912; 0.669 & 0.913; 0.668 & \no\\
+Table VIII, p.\,S78 & 44 values, all to every digit; likelihoods & $-174.388$; $-176.990$ & $-174.388$; $-176.990$ & \ok\\
+Table IX, p.\,S78 & Wald statistics (p-values), all to every digit & 15.8 (0.007); 1.07 (0.994) & 15.8 (0.007); 1.07 (0.994) & \ok\\
+Erratum III, p.\,196 & LR*, Hamilton's model, Grids 1--3 & 1.24, 1.56, 1.55 & 1.24, 1.56, 1.55 & \ok\\
+Erratum VI, p.\,197 & LR*, switching intercept, Grids 1--5 & 2.20, 1.95, 2.09, 2.21, 2.23 & 2.20, 1.95, 2.09, 2.21, 2.23 & \ok\\
+Erratum X, p.\,197 & LR*, Model A, Grids 1--4 & 3.50, 3.53, 3.61, 3.59 & 3.50, 3.53, 3.61, 3.59 & \ok\\
+Erratum X, p.\,197 & LR*, Model B, Grids 1--4 & 3.50, 3.55, 3.61, 3.61 & 3.50, 3.56, 3.61, 3.61 & \no\\
+Erratum X, p.\,197 & 40 p-values: 21 to every digit, 18 off by 0.01, 1 by 0.02 & Model B, Grid 4: .04 .04 .02 .03 .04 & .03 .02 .03 .03 .04 & \no\\
+\end{valuetable}
+
+
+\nmsub{Where they differ}
+\emph{Estimates and statistics} (4 values) are off by one in the last digit, each from an exact maximum: the SE of mu in Table II is 0.46579; in Table V, p = 0.91254 and q = 0.66821 (gradient $2\cdot10^{-9}$; at Hansen's 0.912 and 0.669 the log likelihood is only 0.00013 lower); Model B, Grid 2 gives 3.55558 from three different starts. Hansen's numerical optimizer and Hessian are the likely cause. The tests allow one unit.
+
+\emph{p-values} come from 1,000 draws, a standard deviation of about 0.015 per run. Hansen's two runs differ by up to 0.07 (VI, Grid 5: 0.32 and 0.39), though the erratum says $M=0$ is the original method. Our $M=0$ column lies between them in 7 of 8 rows, 0.01 below both in the eighth. Against 1992 ours is off by $-1$ to $+4$ hundredths; against the erratum's 40 values by $+1$ to $-6$, lower on average by 0.015 (Table III) and 0.031 (Table VI). The tests allow 0.04 against 1992, 0.07 against erratum Tables III and VI, 0.03 against Table X.
+
+\nmsub{One sample choice}
+The constrained model of Table VIII is an AR(2). Its published estimates and likelihood are reproduced only on the AR(2) sample, 1951:4--1984:4 ($n=133$). On the AR(4) sample the likelihood is $-174.893$, not $-176.990$. Footnote 9 suggests the reason: earlier versions of the paper used an AR(2).
+
+\nmsection{Still open}
+Tables IV and VII (Monte Carlo runs of 50 trials), the CPU hours and the LM stability test are not reproduced. Nothing found explains why the erratum's Table VI p-values sit 0.03 to 0.05 above both Hansen's 1992 run and ours. Model B, Grid 4 (14,400 grid points) takes 9.6 seconds here, 15.9 CPU hours in the erratum.
+
+\nmsection{Further considerations}
+\begin{itemize}
+  \item \textbf{A limit.} The distribution of LR* is only bounded (Theorem 1), so the p-values are conservative. They also depend on the grid, as Table VI shows. The functions cover the four models of the article, not any switching model.
+  \item \textbf{An extension.} The tests of \nmcite{Han1996b}{Hansen (1996b)}, or those of MSTest, each tested against a published table; the likelihoods could be offered to MarSwitching.jl.
+\end{itemize}
+
+\nmsection{References}
+{\footnotesize\sloppy
+\nmref{Han1992a}{Hansen, B. E. (1992). The likelihood ratio test under nonstandard conditions: Testing the Markov switching model of GNP. \emph{Journal of Applied Econometrics} 7(S1), S61--S82. \nmdoi{10.1002/jae.3950070506}}
+\nmref{Han1996a}{Hansen, B. E. (1996a). Erratum: The likelihood ratio test under nonstandard conditions: Testing the Markov switching model of GNP. \emph{Journal of Applied Econometrics} 11(2), 195--198. \href{https://doi.org/10.1002/(SICI)1099-1255(199603)11:2\%3C195::AID-JAE375\%3E3.0.CO;2-2}{\color{pblue}doi:10.1002/(SICI)1099-1255(199603)\allowbreak 11:2<195::AID-JAE375>3.0.CO;2-2}}
+\nmref{Han1996b}{Hansen, B. E. (1996b). Inference when a nuisance parameter is not identified under the null hypothesis. \emph{Econometrica} 64(2), 413--430. \nmdoi{10.2307/2171789}}
+\nmref{Ham1989a}{Hamilton, J. D. (1989). A new approach to the economic analysis of nonstationary time series and the business cycle. \emph{Econometrica} 57(2), 357--384. \nmdoi{10.2307/1912559}}
+\nmref{Whi1980a}{White, H. (1980). A heteroskedasticity-consistent covariance matrix estimator and a direct test for heteroskedasticity. \emph{Econometrica} 48(4), 817--838. \nmdoi{10.2307/1912934}}
+}
+
+\nmcredit
+\end{document}
